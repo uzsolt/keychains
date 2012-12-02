@@ -1,0 +1,64 @@
+==========
+Overview
+==========
+
+A simple keychain module which allows to use keychains in awesome window
+manager.
+If you want similar functions to run you'll need like this:
+- tag change: you can bind e.g. WinKey+t to activite "tag change keychain"
+  and after you can press the hotkey of tag to change
+- open urls in web browser: WinKey+u to activite "open url keychain" and
+  after you can press your desired url's hotkey.
+
+
+==========
+Install
+==========
+
+Put keychains.lua to awesome's dir (~/.config/awesome or awesome's libdir).
+
+
+=============
+Basic usage
+=============
+
+First you should load "keychains" module:
+
+require("keychains")
+
+You should initialize:
+
+keychains.init(globalkeys,your_desired_naughty_options)
+
+You don't need call 'root.keys(globalkeys)', keychains.init does.
+
+After init you can add your keychains:
+
+    keychains.add({winkey},"c","Web pages",{
+        g   =   {
+            func    =   function()
+                open_url("https://mail.google.com/mail/u/0/#search/l%3Aunread")
+            end,
+            info    =   "Gmail - unread emails"
+        },
+        a   =   {
+            func    =   function()
+                open_url("http://awesome.naquadah.org/")
+            end,
+            info    =   "awesome web page"
+        },
+        w   =   {
+            func    =   function()
+                open_url("http://awesome.naquadah.org/wiki/Main_Page")
+            end,
+            info    =   "awesome wiki"
+        }
+    })
+
+With this: if you press 'winkey+c', a notify will popup and you can press
+    'g' to open your gmail
+    'a' to open awesome web page
+    'w' to open awesome wiki
+
+For more informations please check source code!
+
