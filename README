@@ -60,5 +60,7 @@ With this: if you press 'winkey+c', a notify will popup and you can press
     'a' to open awesome web page
     'w' to open awesome wiki
 
+The keychains table can be a function which generates similar table as above.
+
 For more informations please check source code!
 
