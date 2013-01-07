@@ -1,11 +1,12 @@
 ----------------------------------------------------------------------------
 -- @author Zsolt Udvari &lt;udvzsolt@gmail.com&gt;
 -- @copyright 2012 Zsolt Udvari
--- @release v1.0 (tested with awesome 3.4.13)
+-- @release v1.1 (tested with awesome 3.5)
 ----------------------------------------------------------------------------
 
 -- Grab environment
 local pairs     =   pairs
+local type      =   type
 local awful     =   awful
 local root      =   root
 local naughty   =   naughty
@@ -42,33 +43,14 @@ end
 -- @param hotkeys table, keys of table are hotkey, values are a table:
 --  - func: function to call
 --  - info: information
+--  Hotkeys can be a function which returns table as above.
 ---
 function add(mod_hk,hk,title,icon,hotkeys)
     local nr = #(keychain)+1
     keychain[nr] = keychain[nr] or {}
     keychain[nr].icon = icon
-    keychain[nr].hotkeys = {}
-    local i, hkt
-    local txt=""
-    for i,hkt in pairs(hotkeys) do
-        keychain[nr].hotkeys = awful.util.table.join(
-            keychain[nr].hotkeys,
-            awful.key({},i,function()
-                reset()
-                hkt.func()
-            end)
-        )
-        txt = txt .. i .. " " .. 
-            (hkt.info or awful.util.escape("[[ no description ]]")) .. "\n"
-    end
-    keychain[nr].info = txt
-    keychain[nr].hotkeys = awful.util.table.join(
-        keychain[nr].hotkeys,
-        awful.key({},"Escape",function()
-            reset()
-        end)
-    )
     keychain[nr].title = title
+    keychain[nr].hotkeys = hotkeys
 
     chains = awful.util.table.join(
         chains,
@@ -78,19 +60,79 @@ function add(mod_hk,hk,title,icon,hotkeys)
     )
 end
 
+
+---
+-- Returns the hotkeys.
+-- @param which which table
+-- @return table.
+-- If hotkeys is a function get_hotkeys will return hotkeys result else will return hotkeys.
+---
+function get_hotkeys(which)
+    local ret
+    if (type(keychain[which]["hotkeys"])=="function") then
+        ret = keychain[which].hotkeys()
+    else
+        ret = keychain[which].hotkeys
+    end
+    return ret
+end
+
+---
+-- Generate information about hotkeys
+-- @param which which table
+-- @return information string
+---
+function get_info(which)
+    local i,hk
+    local txt = ""
+    local hotkeys = get_hotkeys(which)
+
+    for i,hk in pairs(hotkeys) do
+        txt = txt .. i .. " " ..
+            (hk.info or awful.util.escape("[[ no description ]]")) .. "\n"
+    end
+
+    return txt
+end
+
+---
+-- Generate awful keys
+-- @param which which hotkeys
+-- @return awesome-compatible table
+---
+function get_awful_keys(which)
+    local i, hkt,ret
+    local hotkeys = get_hotkeys(which)
+
+    ret = {}
+    for i,hkt in pairs(hotkeys) do
+        ret = awful.util.table.join(
+            ret,
+            awful.key({},i,function()
+                reset()
+                hkt.func()
+            end)
+        )
+    end
+    return ret
+end
+
 ---
 -- Activite a keychain and displays its information.
 -- @param which which keychain should activite
 --- 
 function activite(which)
     root.keys( awful.util.table.join(
-        keychain[which]["hotkeys"],
+        get_awful_keys(which),
+        awful.key({},"Escape",function()
+            reset()
+        end),
         globalkeys
     ))
     notify = naughty.notify(awful.util.table.join(
         {
             title   = keychain[which].title,
-            text    = keychain[which].info,
+            text    = get_info(which),
             icon    = keychain[which].icon
         }, not_options
     ))
