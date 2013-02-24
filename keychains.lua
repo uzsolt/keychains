@@ -18,6 +18,7 @@ local keychain    = {}
 local globalkeys  = {}
 local chains      = {}
 local notify      = nil
+local menu        = nil
 local not_options = {}
 
 ---
@@ -44,13 +45,15 @@ end
 --  - func: function to call
 --  - info: information
 --  Hotkeys can be a function which returns table as above.
+-- @param style one of notify or menu
 ---
-function add(mod_hk,hk,title,icon,hotkeys)
+function add(mod_hk,hk,title,icon,hotkeys,style)
     local nr = #(keychain)+1
     keychain[nr] = keychain[nr] or {}
     keychain[nr].icon = icon
     keychain[nr].title = title
     keychain[nr].hotkeys = hotkeys
+    keychain[nr].style = style or "notify"
 
     chains = awful.util.table.join(
         chains,
@@ -96,6 +99,31 @@ function get_info(which)
 end
 
 ---
+-- Generate menu
+-- @param which which table
+-- @return awful.menu
+---
+function get_menu(which)
+    local i,hk
+    local menu = {}
+    local hotkeys = get_hotkeys(which)
+
+    for i,hk in pairs(hotkeys) do
+        menu = awful.util.table.join(
+            menu,
+            {{
+                i .. " || " .. (hk.info or awful.util.escape("[[ no description ]]")),
+                cmd = function()
+                    reset()
+                    hk.func()
+                end,
+            }}
+        )
+    end
+    return awful.menu({items = menu})
+end
+
+---
 -- Generate awful keys
 -- @param which which hotkeys
 -- @return awesome-compatible table
@@ -120,7 +148,7 @@ end
 ---
 -- Activite a keychain and displays its information.
 -- @param which which keychain should activite
---- 
+---
 function activite(which)
     root.keys( awful.util.table.join(
         get_awful_keys(which),
@@ -129,13 +157,19 @@ function activite(which)
         end),
         globalkeys
     ))
-    notify = naughty.notify(awful.util.table.join(
-        {
-            title   = keychain[which].title,
-            text    = get_info(which),
-            icon    = keychain[which].icon
-        }, not_options
-    ))
+    local style = keychain[which].style or "notify"
+    if (style=="menu") then
+        menu = get_menu(which)
+        menu:show()
+    elseif (style=="notify") then
+        notify = naughty.notify(awful.util.table.join(
+            {
+                title   = keychain[which].title,
+                text    = get_info(which),
+                icon    = keychain[which].icon
+            }, not_options
+        ))
+    end
 end
 
 ---
@@ -147,6 +181,11 @@ function reset()
         globalkeys,
         chains
     ))
-    naughty.destroy(notify)
+    if naughty then
+        naughty.destroy(notify)
+    end
+    if menu then
+        menu:hide()
+    end
 end
 
