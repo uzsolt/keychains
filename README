@@ -34,7 +34,7 @@ You don't need call 'root.keys(globalkeys)', keychains.init does.
 
 After init you can add your keychains:
 
-    keychains.add({winkey},"c","Web pages",{
+    keychains.add({winkey},"c","Web pages","/icons/chromium.png",{
         g   =   {
             func    =   function()
                 open_url("https://mail.google.com/mail/u/0/#search/l%3Aunread")

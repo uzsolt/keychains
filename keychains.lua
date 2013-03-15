@@ -41,6 +41,7 @@ end
 -- @param mod_hk hotkey modifiers (table, same as in awful.key)
 -- @param hk hotkey to jump into hotkey-chain
 -- @param title title of hotkeys
+-- @param icon icon to show
 -- @param hotkeys table, keys of table are hotkey, values are a table:
 --  - func: function to call
 --  - info: information
