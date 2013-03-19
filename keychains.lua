@@ -167,7 +167,8 @@ function activite(which)
             {
                 title   = keychain[which].title,
                 text    = get_info(which),
-                icon    = keychain[which].icon
+                icon    = keychain[which].icon,
+                timeout = 0
             }, not_options
         ))
     end
