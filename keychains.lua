@@ -37,6 +37,24 @@ function init(globkeys,opt)
 end
 
 ---
+-- Starts the keychain-grabs.
+---
+function start()
+    root.keys( awful.util.table.join(
+        globalkeys,
+        chains
+    ))
+end
+
+---
+-- Stop the keychain-grabs. It's very possible that you will not
+-- use this function.
+---
+function stop()
+    root.keys( globalkeys )
+end
+
+---
 -- Add a new keychain-table.
 -- @param mod_hk hotkey modifiers (table, same as in awful.key)
 -- @param hk hotkey to jump into hotkey-chain
@@ -151,13 +169,10 @@ end
 -- @param which which keychain should activite
 ---
 function activite(which)
-    root.keys( awful.util.table.join(
-        get_awful_keys(which),
-        awful.key({},"Escape",function()
-            reset()
-        end),
-        globalkeys
-    ))
+
+    -- the keygrabber object
+    local grabber
+
     local style = keychain[which].style or "notify"
     if (style=="menu") then
         menu = get_menu(which)
@@ -172,6 +187,32 @@ function activite(which)
             }, not_options
         ))
     end
+
+    grabber = awful.keygrabber.run(function(mod,key,event)
+        local hotkeys = get_hotkeys(which)
+        if event == "release" then return end
+        if key == "Escape" then
+            awful.keygrabber.stop(grabber)
+            reset()
+        elseif hotkeys[key] then
+            awful.keygrabber.stop(grabber)
+            reset()
+            hotkeys[key].func()
+        elseif menu then
+            if key == "Up" or key == "Down" or key == "Return" then
+                -- we will pass these keys to displayed 'menu'
+                if key == "Return" then
+                    reset()
+                end
+                return false
+            end
+            naughty.notify({text=key})
+        else
+            -- what do we if user press a bad key?
+            -- maybe beep or similar or a user-specified function?
+        end
+    end)
+
 end
 
 ---
@@ -179,15 +220,13 @@ end
 -- Reset the hotkeys and destroy the keychain notify.
 ---
 function reset()
-    root.keys( awful.util.table.join(
-        globalkeys,
-        chains
-    ))
     if naughty then
         naughty.destroy(notify)
     end
     if menu then
         menu:hide()
+        -- we need to delete because 'activite' function checks it
+        menu = nil
     end
 end
 
