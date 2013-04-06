@@ -60,6 +60,11 @@ With this: if you press 'winkey+c', a notify will popup and you can press
     'a' to open awesome web page
     'w' to open awesome wiki
 
+After you've ended to insert your keychains you'll need run:
+
+    keychains.start()
+
+
 The keychains table can be a function which generates similar table as above.
 
 For more informations please check source code!
