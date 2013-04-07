@@ -16,6 +16,7 @@ Install
 ==========
 
 Put keychains.lua to awesome's dir (~/.config/awesome or awesome's libdir).
+You can install on ArchLinux from AUR: https://aur.archlinux.org/packages/awesome-keychains-git/
 
 
 =============
@@ -28,7 +29,7 @@ require("keychains")
 
 You should initialize:
 
-keychains.init(globalkeys,your_desired_naughty_options)
+keychains.init(globalkeys,your_options_see_docs)
 
 You don't need call 'root.keys(globalkeys)', keychains.init does.
 
