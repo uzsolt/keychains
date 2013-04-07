@@ -64,7 +64,7 @@ end
 --  - func: function to call
 --  - info: information
 --  Hotkeys can be a function which returns table as above.
--- @param style one of notify or menu
+-- @param style one of notify or menu (default is notify)
 ---
 function add(mod_hk,hk,title,icon,hotkeys,style)
     local nr = #(keychain)+1
