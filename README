@@ -67,5 +67,6 @@ After you've ended to insert your keychains you'll need run:
 
 The keychains table can be a function which generates similar table as above.
 
-For more informations please check source code!
+For more informations please check source code or you can use luadoc to generate
+documentation.
 
