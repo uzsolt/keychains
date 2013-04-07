@@ -1,7 +1,8 @@
 ----------------------------------------------------------------------------
 -- @author Zsolt Udvari &lt;udvzsolt@gmail.com&gt;
--- @copyright 2012 Zsolt Udvari
--- @release v1.1 (tested with awesome 3.5)
+-- @copyright 2012-2013 Zsolt Udvari
+-- @release 1.1
+-- (tested with awesome 3.5)
 ----------------------------------------------------------------------------
 
 -- Grab environment
@@ -13,27 +14,52 @@ local naughty   =   naughty
 
 module("keychains")
 
---- variables
+-- variables
 local keychain    = {}
 local globalkeys  = {}
 local chains      = {}
 local notify      = nil
 local menu        = nil
-local not_options = {}
+local options     = {}
+-- the keygrabber object
+local grabber
+
+---
+-- Parameters for function 'init'.
+-- @field menu menu options
+-- @field notify notify options
+--
+-- The options are awesome-compatible.
+-- @see init
+-- @table opt
+---
 
 ---
 -- Initialize the Keychain object.
+--
 -- @param globkeys the main root-hotkeys (without keychains!)
--- @param opt table of notify's options. The 'text', 'icon',
--- 'title' and 'timeout' fields is ignored!
+-- @param opt table of notify's and menu's options.
+--
+-- The 'text', 'icon', 'title' and 'timeout' fields in notify is ignored!
+--
+-- The options of notify and menu are awesome-compatible (see awesome's 
+-- documentation).
+-- @see opt
 ---
 function init(globkeys,opt)
     globalkeys  = globkeys
-    not_options = opt or {}
+    opt = opt or {}
+    opt["notify"] = opt["notify"] or {}
+    opt["menu"]   = opt["menu"] or {}
+    -- the text, icon, title and timeout field is set at runtime
     local v
     for _,v in pairs({"text","icon","title","timeout"}) do
-        opt[v] = nil
+        opt["notify"][v] = nil
     end
+
+    options["notify"] = opt["notify"]
+    options["menu"]   = opt["menu"]
+
 end
 
 ---
@@ -55,16 +81,25 @@ function stop()
 end
 
 ---
+-- Hotkey table.
+-- @field func function to call
+-- @field info information to show
+-- @table hotkeys
+-- @see add
+---
+
+---
 -- Add a new keychain-table.
 -- @param mod_hk hotkey modifiers (table, same as in awful.key)
--- @param hk hotkey to jump into hotkey-chain
+-- @param hk hotkey to jump into this hotkey-chain
 -- @param title title of hotkeys
 -- @param icon icon to show
--- @param hotkeys table, keys of table are hotkey, values are a table:
---  - func: function to call
---  - info: information
---  Hotkeys can be a function which returns table as above.
+-- @param hotkeys table, keys of table are hotkey.
 -- @param style one of notify or menu (default is notify)
+--
+--  The param hotkeys can be a function which returns table as describe
+--  in table hotkeys.
+-- @see hotkeys
 ---
 function add(mod_hk,hk,title,icon,hotkeys,style)
     local nr = #(keychain)+1
@@ -128,18 +163,21 @@ function get_menu(which)
     local hotkeys = get_hotkeys(which)
 
     for i,hk in pairs(hotkeys) do
-        menu = awful.util.table.join(
-            menu,
-            {{
+        menu[i] =
+            {
                 i .. " || " .. (hk.info or awful.util.escape("[[ no description ]]")),
                 cmd = function()
                     reset()
                     hk.func()
                 end,
-            }}
-        )
+            }
     end
-    return awful.menu({items = menu})
+
+    return awful.menu({
+        items = menu,
+        theme = options["menu"]
+    })
+
 end
 
 ---
@@ -170,8 +208,6 @@ end
 ---
 function activite(which)
 
-    -- the keygrabber object
-    local grabber
 
     local style = keychain[which].style or "notify"
     if (style=="menu") then
@@ -184,7 +220,7 @@ function activite(which)
                 text    = get_info(which),
                 icon    = keychain[which].icon,
                 timeout = 0
-            }, not_options
+            }, options["notify"]
         ))
     end
 
@@ -192,21 +228,15 @@ function activite(which)
         local hotkeys = get_hotkeys(which)
         if event == "release" then return end
         if key == "Escape" then
-            awful.keygrabber.stop(grabber)
             reset()
         elseif hotkeys[key] then
-            awful.keygrabber.stop(grabber)
             reset()
             hotkeys[key].func()
         elseif menu then
             if key == "Up" or key == "Down" or key == "Return" then
                 -- we will pass these keys to displayed 'menu'
-                if key == "Return" then
-                    reset()
-                end
                 return false
             end
-            naughty.notify({text=key})
         else
             -- what do we if user press a bad key?
             -- maybe beep or similar or a user-specified function?
@@ -220,6 +250,9 @@ end
 -- Reset the hotkeys and destroy the keychain notify.
 ---
 function reset()
+    if grabber then
+        awful.keygrabber.stop(grabber)
+    end
     if naughty then
         naughty.destroy(notify)
     end
