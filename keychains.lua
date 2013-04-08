@@ -1,6 +1,7 @@
 ----------------------------------------------------------------------------
 -- @author Zsolt Udvari &lt;udvzsolt@gmail.com&gt;
 -- @copyright 2012-2013 Zsolt Udvari
+-- @license GPLv2
 -- @release 1.1
 -- (tested with awesome 3.5)
 ----------------------------------------------------------------------------
