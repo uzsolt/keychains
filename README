@@ -63,8 +63,11 @@ With this: if you press 'winkey+c', a notify will popup and you can press
 
 After you've ended to insert your keychains you'll need run:
 
-    keychains.start()
+    keychains.start(5)
 
+The parameter '5' means that if you press 'winkey+c' and don't press anything,
+after 5 seconds keychain will exit. This parameter is optional, if the value
+is non-set or 0, no timeout.
 
 The keychains table can be a function which generates similar table as above.
 

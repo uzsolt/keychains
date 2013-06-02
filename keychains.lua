@@ -12,6 +12,7 @@ local type      =   type
 local awful     =   awful
 local root      =   root
 local naughty   =   naughty
+local capi      =   { timer = timer }
 
 module("keychains")
 
@@ -24,6 +25,9 @@ local menu        = nil
 local options     = {}
 -- the keygrabber object
 local grabber
+
+-- the timer object of timeout
+local timer_timeout
 
 ---
 -- Parameters for function 'init'.
@@ -65,8 +69,17 @@ end
 
 ---
 -- Starts the keychain-grabs.
+-- @param timeout seconds to cancel after first key the hotkey-grabbing.
+-- 0 means no timeout.
 ---
-function start()
+function start(timeout)
+    timeout = timeout or 0
+    timer_timeout = capi.timer({timeout = timeout})
+    if (timeout>0) then
+        timer_timeout:connect_signal("timeout",function()
+            reset()
+        end)
+    end
     root.keys( awful.util.table.join(
         globalkeys,
         chains
@@ -209,8 +222,10 @@ end
 ---
 function activite(which)
 
+    timer_timeout:start()
 
     local style = keychain[which].style or "notify"
+
     if (style=="menu") then
         menu = get_menu(which)
         menu:show()
@@ -251,6 +266,7 @@ end
 -- Reset the hotkeys and destroy the keychain notify.
 ---
 function reset()
+    timer_timeout:stop()
     if grabber then
         awful.keygrabber.stop(grabber)
     end
