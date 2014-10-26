@@ -9,9 +9,9 @@
 -- Grab environment
 local pairs     =   pairs
 local type      =   type
-local awful     =   awful
+local awful     =   require("awful")
 local root      =   root
-local naughty   =   naughty
+local naughty   =   require("naughty")
 local capi      =   { timer = timer }
 
 module("keychains")
